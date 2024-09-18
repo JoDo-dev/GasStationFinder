@@ -172,7 +172,7 @@ body {
   position: absolute;
   z-index: 999;
   width: 100%;
-  max-width: 370px;
+  
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
   display: flex;
@@ -184,7 +184,13 @@ body {
   border-bottom-right-radius: 0;
   height: 100%;
   max-height: 68vh;
+  max-width: 500px;
   transition: height 0.2s;
+  @media (min-width: 500px) and (orientation: landscape) {
+    left: 1rem;
+    max-width: 370px;
+    max-height: calc(100vh - 1rem);
+  }
   @media (min-width: 768px) {
     top: 2rem;
     left: 2rem;
