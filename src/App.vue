@@ -22,8 +22,8 @@ const filteredStations = computed((): FuelStation[] => {
       )
     : fuelStations.value
   const sortedStations = sortAsc.value
-    ? searchedStations.sort((a, b) => a.objectid - b.objectid)
-    : searchedStations.sort((a, b) => b.objectid - a.objectid)
+    ? searchedStations.sort((a, b) => a.adresse.localeCompare(b.adresse))
+    : searchedStations.sort((a, b) => b.adresse.localeCompare(a.adresse))
   return sortedStations
 })
 
