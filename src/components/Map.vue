@@ -7,17 +7,22 @@ import { ref, onMounted, watch } from 'vue'
 import type { FuelStation } from '../types'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { actions, getters } from '../store'
 
 const props = defineProps<{
   fuelStations: FuelStation[]
   activeStation: FuelStation | null
-  heighlightedStations: FuelStation[]
+  highlightedStations: FuelStation[]
 }>()
 
 const emit = defineEmits(['markerClicked'])
 
 const map = ref<string | HTMLElement>()
 const lMap = ref<L.Map>()
+const highlightedStations = ref<FuelStation[]>([])
+
+const { getSearch, filteredAndSortedFuelStations, getFuelStations, getActiveStation } = getters
+const { setActiveStation } = actions
 
 const initMap = () => {
   if (!map.value) return
@@ -50,7 +55,7 @@ const setActiveMarker = (station: FuelStation) => {
   if (!lMap.value) return
   const { marker, geometry } = station
   lMap.value.setView([geometry.y, geometry.x], 15)
-  props.fuelStations.forEach(({ marker }) => {
+  getFuelStations.value.forEach(({ marker }) => {
     if (!marker) return
     marker.getElement()?.classList.remove('map__marker--active')
     marker.setOpacity(0.6)
@@ -67,7 +72,7 @@ onMounted(() => {
 })
 
 watch(
-  () => props.activeStation,
+  getActiveStation,
   (station) => {
     if (!station || !lMap.value) return
     setActiveMarker(station)
@@ -75,7 +80,7 @@ watch(
 )
 
 watch(
-  () => props.heighlightedStations,
+  highlightedStations,
   (stations) => {
     if (!lMap.value) return
     props.fuelStations.forEach(({ marker }) => {
@@ -89,6 +94,20 @@ watch(
     })
   }
 )
+
+watch(getSearch, () => {
+  if (filteredAndSortedFuelStations.value.length) {
+    setHighlightedStations(filteredAndSortedFuelStations.value)
+  }
+});
+
+const setHighlightedStations = (stations: FuelStation[]) => {
+  highlightedStations.value = []
+  setActiveStation(null)
+  stations.forEach((station: FuelStation) => {
+    highlightedStations.value.push(station)
+  })
+}
 </script>
 
 <style lang="scss">

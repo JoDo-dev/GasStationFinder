@@ -4,12 +4,12 @@
       type="text"
       class="filter-bar__input"
       placeholder="Nach Adresse suchen"
-      v-model="search"
+      v-model="searchValue"
       @change="handleSearch()"
     />
     <button
       class="filter-bar__button"
-      :class="{ 'filter-bar__button--desc': !sortAsc }"
+      :class="{ 'filter-bar__button--desc': !getSortAZ }"
       @click.prevent="handleSort()"
     >
       <IconArrow class="filter-bar__icon" />
@@ -18,33 +18,27 @@
 </template>
 
 <script setup lang="ts">
-import { defineEmits, ref, watch } from 'vue'
 import IconArrow from './icons/IconArrow.vue'
+import {getters, actions} from '../store'
+import { ref, watch } from 'vue';
 
-const props = defineProps<{
-  parentSearch: string
-}>()
+const { getSearch, getSortAZ } = getters
+const { setSearch, setSortAZ } = actions
 
-const sortAsc = ref<boolean>(true)
-const search = ref<string>('')
+const searchValue = ref<string>(getSearch.value)
 
-const emit = defineEmits(['sortClicked', 'searchChanged'])
+watch(getSearch, () => {
+  searchValue.value = getSearch.value
+});
 
 const handleSort = () => {
-  sortAsc.value = !sortAsc.value
-  emit('sortClicked', sortAsc.value)
+  setSortAZ(!getSortAZ.value);
 }
 
 const handleSearch = () => {
-  emit('searchChanged', search.value)
+  setSearch(searchValue.value)
 }
 
-watch(
-  () => props.parentSearch,
-  (newSearch) => {
-    search.value = newSearch
-  }
-)
 </script>
 
 <style lang="scss" scoped>

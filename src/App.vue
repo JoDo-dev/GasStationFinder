@@ -5,80 +5,29 @@ import Map from './components/Map.vue'
 import IconSearch from './components/icons/IconSearch.vue'
 import IconAngle from './components/icons/IconAngle.vue'
 import type { FuelStation } from './types'
-import { computed, ref, watch, useTemplateRef, nextTick } from 'vue'
+import { ref, watch, useTemplateRef, nextTick } from 'vue'
+import { getters, actions } from './store'
 
-const fuelStations = ref<FuelStation[]>([] as FuelStation[])
 const activeStation = ref<FuelStation | null>(null)
-const heighlightedStations = ref<FuelStation[]>([])
-const search = ref<string>('')
-const sortAsc = ref<boolean>(true)
+const highlightedStations = ref<FuelStation[]>([])
 const stations = useTemplateRef('stations')
 const listToggled = ref<boolean>(false)
 
-const filteredStations = computed((): FuelStation[] => {
-  const searchedStations = search.value.length
-    ? fuelStations.value.filter((station) =>
-        station.adresse.toLowerCase().includes(search.value.toLowerCase())
-      )
-    : fuelStations.value
-  const sortedStations = sortAsc.value
-    ? searchedStations.sort((a, b) => a.adresse.localeCompare(b.adresse))
-    : searchedStations.sort((a, b) => b.adresse.localeCompare(a.adresse))
-  return sortedStations
-})
 
-const getFuelData = async () => {
-  try {
-    const response = await fetch(
-      'https://geoportal.stadt-koeln.de/arcgis/rest/services/verkehr/gefahrgutstrecken/MapServer/0/query?where=objectid+is+not+null&text=&objectIds=&time=&geometry=&geometryType=esriGeometryEnvelope&inSR=&spatialRel=esriSpatialRelIntersects&distance=&units=esriSRUnit_Foot&relationParam=&outFields=*&returnGeometry=true&returnTrueCurves=false&maxAllowableOffset=&geometryPrecision=&outSR=4326&havingClause=&returnIdsOnly=false&returnCountOnly=false&orderByFields=&groupByFieldsForStatistics=&outStatistics=&returnZ=false&returnM=false&gdbVersion=&historicMoment=&returnDistinctValues=false&resultOffset=&resultRecordCount=&returnExtentOnly=false&datumTransformation=&parameterValues=&rangeValues=&quantizationParameters=&featureEncoding=esriDefault&f=pjson'
-    )
-    const data = await response.json()
-    const mappedData = data.features.map(
-      (feature: any) =>
-        ({
-          ...feature.attributes,
-          geometry: feature.geometry
-        }) as FuelStation[]
-    )
-    const sortedByID = mappedData.sort((a: FuelStation, b: FuelStation) => a.objectid - b.objectid)
-    fuelStations.value = sortedByID
-  } catch (error) {
-    throw new Error('Failed to fetch data')
-  }
-}
+const { requestFuelData, setSearch, setActiveStation } = actions
+const { filteredAndSortedFuelStations, getFuelStations, getActiveStation } = getters
 
+requestFuelData();
 
-getFuelData()
-
-watch(search, () => {
-  if (filteredStations.value.length) {
-    setHeighlightedStations(filteredStations.value)
-  }
-})
-
-const setSortMode = (mode: boolean) => {
-  sortAsc.value = mode
-}
-
-const setSearch = (newSearch: string) => {
-  search.value = newSearch
-}
-
-const setHeighlightedStations = (stations: FuelStation[]) => {
-  heighlightedStations.value = []
-  activeStation.value = null
-  stations.forEach((station: FuelStation) => {
-    heighlightedStations.value.push(station)
-  })
-}
-const setActiveStation = (station: FuelStation) => {
-  if (!filteredStations.value.find((st) => station.objectid === st.objectid)) {
-    search.value = ''
+// Move to Store
+const setActiveMarker = (station: FuelStation) => {
+  if (!filteredAndSortedFuelStations.value.find((st) => station.objectid === st.objectid)) {
+    setSearch('');
   }
   nextTick(() => {
     if (station) {
       listToggled.value = true
-      activeStation.value = station
+      setActiveStation(station);
       const stationElement = stations.value?.$el.querySelector(`#station-${station.objectid}`)
       if (stationElement) {
         stationElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -97,9 +46,9 @@ const setActiveStation = (station: FuelStation) => {
           :class="{ 'stations__toggle-icon--turned': !listToggled }"
         />
       </button>
-      <FilterBar @sortClicked="setSortMode" @searchChanged="setSearch" :parent-search="search" />
+      <FilterBar />
       <transition-group
-        v-if="filteredStations.length"
+        v-if="filteredAndSortedFuelStations.length"
         ref="stations"
         name="fade"
         tag="ul"
@@ -107,11 +56,11 @@ const setActiveStation = (station: FuelStation) => {
       >
         <card
           :key="`station-${item.objectid}`"
-          v-for="item in filteredStations"
+          v-for="item in filteredAndSortedFuelStations"
           :id="`station-${item.objectid}`"
           :station="item"
-          :isActive="activeStation !== null && activeStation.objectid === item.objectid"
-          @showOnMap="setActiveStation"
+          :isActive="getActiveStation !== null && getActiveStation.objectid === item.objectid"
+          @showOnMap="setActiveMarker"
         />
       </transition-group>
       <div v-else class="stations__empty">
@@ -121,11 +70,11 @@ const setActiveStation = (station: FuelStation) => {
     </div>
     <Map
       class="map"
-      v-if="fuelStations.length"
-      :fuelStations="fuelStations"
+      v-if="getFuelStations.length"
+      :fuelStations="getFuelStations"
       :activeStation="activeStation"
-      :heighlightedStations="heighlightedStations"
-      @markerClicked="setActiveStation"
+      :highlightedStations="highlightedStations"
+      @markerClicked="setActiveMarker"
     />
   </main>
 </template>
