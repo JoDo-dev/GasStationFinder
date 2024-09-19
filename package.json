@@ -15,7 +15,6 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "@vue-leaflet/vue-leaflet": "^0.10.1",
     "leaflet": "^1.9.4",
     "sass-embedded": "^1.78.0",
     "vue": "^3.4.29"
