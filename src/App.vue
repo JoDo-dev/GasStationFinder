@@ -47,6 +47,7 @@ const getFuelData = async () => {
   }
 }
 
+
 getFuelData()
 
 watch(search, () => {
