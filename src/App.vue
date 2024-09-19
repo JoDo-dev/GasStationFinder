@@ -1,33 +1,29 @@
 <script setup lang="ts">
 import FilterBar from './components/FilterBar.vue'
-import Card from './components/Card.vue'
-import Map from './components/Map.vue'
+import Card from './components/ListCard.vue'
+import Map from './components/FuelMap.vue'
 import IconSearch from './components/icons/IconSearch.vue'
 import IconAngle from './components/icons/IconAngle.vue'
 import type { FuelStation } from './types'
-import { ref, watch, useTemplateRef, nextTick } from 'vue'
+import { ref, useTemplateRef, nextTick } from 'vue'
 import { getters, actions } from './store'
 
-const activeStation = ref<FuelStation | null>(null)
-const highlightedStations = ref<FuelStation[]>([])
 const stations = useTemplateRef('stations')
 const listToggled = ref<boolean>(false)
-
 
 const { requestFuelData, setSearch, setActiveStation } = actions
 const { filteredAndSortedFuelStations, getFuelStations, getActiveStation } = getters
 
-requestFuelData();
+requestFuelData()
 
-// Move to Store
 const setActiveMarker = (station: FuelStation) => {
   if (!filteredAndSortedFuelStations.value.find((st) => station.objectid === st.objectid)) {
-    setSearch('');
+    setSearch('')
   }
   nextTick(() => {
     if (station) {
       listToggled.value = true
-      setActiveStation(station);
+      setActiveStation(station)
       const stationElement = stations.value?.$el.querySelector(`#station-${station.objectid}`)
       if (stationElement) {
         stationElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -72,8 +68,6 @@ const setActiveMarker = (station: FuelStation) => {
       class="map"
       v-if="getFuelStations.length"
       :fuelStations="getFuelStations"
-      :activeStation="activeStation"
-      :highlightedStations="highlightedStations"
       @markerClicked="setActiveMarker"
     />
   </main>
@@ -122,7 +116,7 @@ body {
   position: absolute;
   z-index: 999;
   width: 100%;
-  
+
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
   display: flex;

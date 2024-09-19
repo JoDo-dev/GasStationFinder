@@ -19,8 +19,8 @@
 
 <script setup lang="ts">
 import IconArrow from './icons/IconArrow.vue'
-import {getters, actions} from '../store'
-import { ref, watch } from 'vue';
+import { getters, actions } from '../store'
+import { ref, watch } from 'vue'
 
 const { getSearch, getSortAZ } = getters
 const { setSearch, setSortAZ } = actions
@@ -29,16 +29,15 @@ const searchValue = ref<string>(getSearch.value)
 
 watch(getSearch, () => {
   searchValue.value = getSearch.value
-});
+})
 
 const handleSort = () => {
-  setSortAZ(!getSortAZ.value);
+  setSortAZ(!getSortAZ.value)
 }
 
 const handleSearch = () => {
   setSearch(searchValue.value)
 }
-
 </script>
 
 <style lang="scss" scoped>
