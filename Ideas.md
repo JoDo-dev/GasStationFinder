@@ -2,7 +2,7 @@
 - Use CSS vars for Colors, Shadows, Paddings, Margins and Media Query Breakpoints
 - Use Global CSS File for Basic Styling (HTML, Body, Anmiation classes and globals *)
 - Create List Component to seperate Funktionality form App.vue
-- Add an Store to handle Data like Search, Sortmode and FuelStation request
+- ~~Add an Store to handle Data like Search, Sortmode and FuelStation request~~
 
 
 # Tests
